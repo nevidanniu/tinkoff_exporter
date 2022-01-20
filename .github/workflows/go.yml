@@ -32,14 +32,6 @@ jobs:
           go get github.com/mitchellh/gox
           /home/runner/go/bin/gox -osarch="linux/amd64 linux/arm darwin/amd64 windows/amd64" --output "build/{{ .Dir }}_{{.OS}}_{{.Arch}}"
 
-      - name: Docker
-        uses: elgohr/Publish-Docker-Github-Action@master
-        with:
-          name: maksim77/tinkoff_exporter
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          tags: "latest,${{ env.tag }}"
-
       - name: Release
         uses: softprops/action-gh-release@v1
         with:

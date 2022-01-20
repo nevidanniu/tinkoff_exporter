@@ -108,4 +108,7 @@ func initConfig() {
 	if viper.GetString("token") == "CHANGEME" {
 		log.Fatal("You must specify the correct token!")
 	}
+	if sectors := viper.GetStringMapStringSlice("sectors"); len(sectors) == 0 {
+		log.Fatal("You must specify list of sectors")
+	}
 }

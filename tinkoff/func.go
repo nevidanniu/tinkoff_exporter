@@ -19,6 +19,7 @@ package tinkoff
 import (
 	"context"
 	"math"
+	"regexp"
 	"time"
 
 	sdk "github.com/TinkoffCreditSystems/invest-openapi-go-sdk"
@@ -223,4 +224,29 @@ func reverseTransactionsList(in goxirr.Transactions) {
 		j := len(in) - i - 1
 		in[i], in[j] = in[j], in[i]
 	}
+}
+
+func getTickerSector(searchTicker string, searchRegexp bool) string {
+	sectors := viper.GetStringMapStringSlice("sectors")
+
+	for sector, tickers := range sectors {
+		for _, ticker := range tickers {
+			if ticker == searchTicker {
+				return sector
+			}
+		}
+	}
+
+	if searchRegexp {
+		for sector, tickers := range sectors {
+			for _, ticker := range tickers {
+				matched, _ := regexp.MatchString(searchTicker, ticker)
+				if matched {
+					return sector
+				}
+			}
+		}
+	}
+
+	return "undefined"
 }

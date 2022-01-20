@@ -46,9 +46,9 @@ func NewTinkoffCollector() *TinkoffCollector {
 	tc := &TinkoffCollector{
 		accountIDs:             make(map[sdk.AccountType]string),
 		totalAmountDesc:        prometheus.NewDesc("total", "Total amount", []string{"account"}, nil),
-		stockPriceDesc:         prometheus.NewDesc("stock", "Stock price", []string{"type", "ticker", "currency", "in_portfolio", "account"}, nil),
-		stockCountDesc:         prometheus.NewDesc("stock_count", "Stock count", []string{"type", "ticker", "account"}, nil),
-		stockExpectedYieldDesc: prometheus.NewDesc("stock_expected_yield", "Stock expected yield", []string{"type", "ticker", "currency", "account"}, nil),
+		stockPriceDesc:         prometheus.NewDesc("stock", "Stock price", []string{"type", "ticker", "sector", "currency", "in_portfolio", "account"}, nil),
+		stockCountDesc:         prometheus.NewDesc("stock_count", "Stock count", []string{"type", "ticker", "sector", "account"}, nil),
+		stockExpectedYieldDesc: prometheus.NewDesc("stock_expected_yield", "Stock expected yield", []string{"type", "ticker", "sector", "currency", "account"}, nil),
 		currencyDesc:           prometheus.NewDesc("currency", "Currency", []string{"currency", "account"}, nil),
 		currencyBlockedDesc:    prometheus.NewDesc("currency_blocked", "Blocked currency", []string{"currency", "account"}, nil),
 		totalPayInDesc:         prometheus.NewDesc("total_payin", "Total PayIn", []string{"account"}, nil),
@@ -128,6 +128,7 @@ func (c TinkoffCollector) Collect(ch chan<- prometheus.Metric) {
 
 		for _, p := range portfolio.Positions {
 			var value float64
+			var sector string
 
 			lastPrice, err := getLastPrice(p.FIGI)
 			if err != nil {
@@ -138,22 +139,24 @@ func (c TinkoffCollector) Collect(ch chan<- prometheus.Metric) {
 			switch p.InstrumentType {
 			case "Bond":
 				value = lastPrice
+				sector = getTickerSector(p.Ticker, true)
 			default:
 				value = lastPrice
+				sector = getTickerSector(p.Ticker, false)
 			}
 
 			ch <- prometheus.MustNewConstMetric(c.stockPriceDesc,
 				prometheus.GaugeValue,
 				value,
-				string(p.InstrumentType), p.Ticker, string(p.ExpectedYield.Currency), "1", string(accountName))
+				string(p.InstrumentType), p.Ticker, sector, string(p.ExpectedYield.Currency), "1", string(accountName))
 			ch <- prometheus.MustNewConstMetric(c.stockCountDesc,
 				prometheus.GaugeValue,
 				p.Balance,
-				string(p.InstrumentType), p.Ticker, string(accountName))
+				string(p.InstrumentType), p.Ticker, sector, string(accountName))
 			ch <- prometheus.MustNewConstMetric(c.stockExpectedYieldDesc,
 				prometheus.GaugeValue,
 				p.ExpectedYield.Value,
-				string(p.InstrumentType), p.Ticker, string(p.ExpectedYield.Currency), string(accountName)) //TODO Обработать разные валюты
+				string(p.InstrumentType), p.Ticker, sector, string(p.ExpectedYield.Currency), string(accountName)) //TODO Обработать разные валюты
 		}
 
 		for _, currency := range portfolio.Currencies {
@@ -199,7 +202,9 @@ func (c TinkoffCollector) Collect(ch chan<- prometheus.Metric) {
 					return
 				}
 
-				ch <- prometheus.MustNewConstMetric(c.stockPriceDesc, prometheus.GaugeValue, price, "Stock", t, string(f.Currency), "0", string(accountName))
+				sector := getTickerSector(t, false)
+
+				ch <- prometheus.MustNewConstMetric(c.stockPriceDesc, prometheus.GaugeValue, price, "Stock", t, sector, string(f.Currency), "0", string(accountName))
 
 				wg.Done()
 			}(t, ch)
