@@ -22,6 +22,8 @@ jobs:
           echo ${{ github.ref }} > ref.txt 
           tag=`sed -E "s/.*v(.*)/\1/g" ref.txt`
           echo "::set-env name=tag::$tag"
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
 
       - name: GolangCI-Lint
         uses: Mushus/golangci-linter@v1.1.2
