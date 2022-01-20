@@ -27,6 +27,24 @@ token: "t.TOKEN"
 tickers:
   - "YNDX"
   - "MTSS"
+sectors:
+  materials:
+    - GMKN
+  industrials:
+    - CAT
+    - AFLT
+  utilities: []
+  consumer_cyclical:
+    - BABA
+    - DHI
+    - GM
+    - DSKY
+  technology:
+    - AMAT
+  information_technology:
+    - YNDX
+    - TCBR
+
 ```
 
 |Параметр|Описание|Переменная окружения|Значение по умолчанию|
@@ -35,7 +53,7 @@ tickers:
 |port|Порт на котором будет отвечать сервис|TINKOFF_EXPORTER_PORT|8000|
 |**token**|Токен доступа к OpenAPI|TINKOFF_EXPORTER_TOKEN||
 |tickers|Список тикеров тех ценных бумаг котрых у вас в портфеле нет но вы, тем не менее, хотите собирать по ним статистику|TINKOFF_EXPORTER_TICKERS|[]|
-
+|sectors|Список сектором и ценных бумаг в них, заполняется вручную, под потребности
 ## Запуск в Docker
 
 ```sh
